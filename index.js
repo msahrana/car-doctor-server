@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const app = express()
 const port = process.env.PORT || 5000;
@@ -24,6 +24,52 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     await client.connect();
+
+    const servicesCollection = client.db('carDoctor').collection('services');
+    const bookingCollection = client.db('carDoctor').collection('booking');
+
+    /* for service */
+    app.get('/services', async(req, res) => {
+      const cursor = servicesCollection.find()
+      const result = await cursor.toArray()
+      res.send(result)
+    })
+
+    app.get('/services/:id', async(req, res) =>{
+      const id = req.params.id;
+      const query = {_id : new ObjectId(id)}
+      const result = await servicesCollection.findOne(query)
+      res.send(result)
+    })
+
+    /* for booking */
+    app.get('/booking', async(req, res)=>{
+      console.log(req.query.email)
+      let query = {}
+      if (req.query?.email) {
+        query = {email: req.query.email}
+      }
+      const result = await bookingCollection.find(query).toArray()
+      res.send(result)
+    })
+
+    app.post('/booking', async(req, res) =>{
+      const booking = req.body
+      console.log(booking)
+      const result = await bookingCollection.insertOne(booking)
+      res.send(result)
+    })
+
+    // app.patch('/booking/:id', async(req, res)=>{
+
+    // })
+
+    app.delete('/booking/:id', async(req, res) =>{
+      const id = req.params.id;
+      const query = {_id : new ObjectId(id)}
+      const result = await bookingCollection.deleteOne(query)
+      res.send(result)
+    })
 
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
