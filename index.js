@@ -42,7 +42,7 @@ const verifyToken = async(req, res, next) =>{
     if (err) {
       return res.status(401).send({massage: 'unauthorized'})
     }
-    res.users = decoded
+    req.user = decoded
     next()
   })
   
@@ -85,9 +85,10 @@ async function run() {
 
     /* for booking */
     app.get('/booking',logger, verifyToken, async(req, res)=>{
-      console.log('req.query.email')
-      console.log('users of valid token', req.users)
-      if (req.query?.email !== req.users?.email) {
+      // console.log('req.query.email')
+      // console.log('users of valid token', req.users)
+      console.log(req.query?.email , req.user?.email)
+      if (req.query?.email !== req.user?.email) {
         return res.status(403).send({massage: 'forbidden'})
       }
       // console.log('tok tok token', req.cookies.token)
