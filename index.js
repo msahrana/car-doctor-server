@@ -28,7 +28,6 @@ const client = new MongoClient(uri, {
 
 const logger = async(req, res, next) => {
   console.log('called', req.host, req.originalUrl)
-
   next()
 }
 
@@ -71,7 +70,15 @@ async function run() {
 
     /* for service */
     app.get('/services', logger, async(req, res) => {
-      const cursor = servicesCollection.find()
+      const filter = req.query
+      console.log(filter)
+      const query = {}
+      const options = {
+        sort:{
+          price : filter.sort === 'asc' ? 1 : -1
+        }
+      }
+      const cursor = servicesCollection.find(query, options)
       const result = await cursor.toArray()
       res.send(result)
     })
@@ -85,13 +92,10 @@ async function run() {
 
     /* for booking */
     app.get('/booking',logger, verifyToken, async(req, res)=>{
-      // console.log('req.query.email')
-      // console.log('users of valid token', req.users)
       console.log(req.query?.email , req.user?.email)
       if (req.query?.email !== req.user?.email) {
         return res.status(403).send({massage: 'forbidden'})
       }
-      // console.log('tok tok token', req.cookies.token)
       let query = {}
       if (req.query?.email) {
         query = {email: req.query.email}
